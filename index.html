@@ -18,7 +18,6 @@
         root.descendants().forEach((d, i) => {
             d.id = i;
             d._children = d.children;
-            if (d.depth && d.data.name.length !== 7) d.children = null;
         });
         var svg = d3.select("body").append("svg")
             .attr("viewBox", [-margin.left, -margin.top, 320, dx])
