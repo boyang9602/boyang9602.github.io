@@ -8,8 +8,8 @@
 <div id="svg-container"></div>
 <script type="text/javascript">
     function setup(data) {
-        var dx = 10, dy = 40;
-        var margin = ({top: 10, right: 80, bottom: 10, left: 80});
+        var dx = 10, dy = 30;
+        var margin = ({top: 10, right: 60, bottom: 10, left: 80});
         var tree = d3.tree().nodeSize([dx, dy]);
         var diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
         var root = d3.hierarchy(data);
@@ -21,7 +21,7 @@
         });
         var svg = d3.select("body").append("svg")
             .attr("viewBox", [-margin.left, -margin.top, 320, dx])
-            .style("font", "3px sans-serif")
+            .style("font", "2px sans-serif")
             .style("user-select", "none");
         var gLink = svg.append("g")
             .attr("fill", "none")
@@ -73,7 +73,7 @@
 
             nodeEnter.append("text")
                 .attr("dy", "0.31em")
-                .attr("x", d => d._children ? -6 : 6)
+                .attr("x", d => d._children ? -3 : 3)
                 .attr("text-anchor", d => d._children ? "end" : "start")
                 .text(d => d.data.name)
                 .clone(true).lower()
