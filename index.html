@@ -63,6 +63,10 @@
             <div class="key">Name: </div>
             <div class="value" id="name"></div>
         </div>
+        <div class="container">
+            <div class="key">Filepath: </div>
+            <div class="value" id="filepath"></div>
+        </div>
         <p id="commit"></p>
         <div class="container">
             <div class="key">liveAnnotations: </div>
@@ -148,42 +152,45 @@
                     const f = files[i];
                     if (f.name.endsWith(".csv")) {
                     } else {
-                        var project = f.name.split("@")[0];
                         var reader = new FileReader();
                         reader.readAsText(f);
-                        reader.onload = function(event) {
-                            var json = JSON.parse(event.target.result);
-                            for (let i = 1; i < results.data.length; i++) {
-                                const element = results.data[i];
-                                if (element[0] in json) {
-                                    var btns = $("." + element[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__"));
-                                    for (let k = 0; k < btns.length; k++) {
-                                        const btn = btns[k];
-                                        for (let l = 0; l < json[element[0]].length; l++) {
-                                            const state = json[element[0]][l];
-                                            if (state["commitId"] === btn.getAttribute("commit")) {
-                                                state["url"] = project_repo[project];
-                                                for (const key in state) {
-                                                    const value = state[key];
-                                                    if (Array.isArray(value)) {
-                                                        btn.setAttribute("data-" + key, value.join(", "));
-                                                    } else {
-                                                        if (key != "strippedContent" && !key.startsWith("is") && !key.startsWith("has") && key != "junit3" && key != "commitId") {
-                                                            btn.setAttribute("data-" + key, value);
+                        reader.onload = (function(f){
+                            var project = f.name.split("@")[0];
+                            return function (event) {
+                                var json = JSON.parse(event.target.result);
+                                for (let i = 1; i < results.data.length; i++) {
+                                    const sample = results.data[i];
+                                    if (sample[0] in json) {
+                                        var btns = $("." + sample[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__"));
+                                        for (let k = 0; k < btns.length; k++) {
+                                            const btn = btns[k];
+                                            for (let l = 0; l < json[sample[0]].length; l++) {
+                                                const state = json[sample[0]][l];
+                                                if (state["commitId"] === btn.getAttribute("commit")) {
+                                                    for (const key in state) {
+                                                        const value = state[key];
+                                                        if (Array.isArray(value)) {
+                                                            btn.setAttribute("data-" + key, value.join(", "));
+                                                        } else {
+                                                            if (key != "strippedContent" && !key.startsWith("is") && !key.startsWith("has") && key != "junit3" && key != "commitId") {
+                                                                btn.setAttribute("data-" + key, value);
+                                                            }
                                                         }
                                                     }
+                                                    btn.setAttribute("project", project);
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
+                            };
+                        })(f); 
                     }
                 }
             }});
             function clearItem() {
                 $("#item #name").empty();
+                $("#item #filepath").empty();
                 $("#item #commit").empty();
                 $("#item #liveAnnotations").empty();
                 $("#item #COAnnotations").empty();
@@ -194,9 +201,10 @@
                 clearItem();
                 var btn = e.currentTarget;
                 $("#item #name")[0].textContent = btn.getAttribute("data-name");
+                $("#item #filepath")[0].textContent = btn.getAttribute("data-filepath");
                 var a = document.createElement("a");
                 // console.log(btn);
-                a.setAttribute("href", btn.getAttribute("data-url") + btn.getAttribute("commit"));
+                a.setAttribute("href", project_repo[btn.getAttribute("project")] + btn.getAttribute("commit"));
                 a.setAttribute("target", "_blank");
                 a.textContent = btn.getAttribute("commit");
                 $("#item #commit")[0].appendChild(a);
