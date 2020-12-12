@@ -48,6 +48,10 @@
             background-color: red;
         }
         xmp{ white-space:pre-wrap; word-wrap:break-word; }
+        .lastclick {
+            color: red;
+            background-color: black;
+        }
     </style>
 <body>
     <input type="file" id="data" webkitdirectory directory multiple/><input type="button" id="loaddata" value="start" />
@@ -147,6 +151,7 @@
                     }
                     tr.append(td1, td2);
                     $("#list").append(tr);
+                    $("#list").append("<hr/>")
                 }
                 for (let i = 0; i < files.length; i++) {
                     const f = files[i];
@@ -215,6 +220,7 @@
                 $("#item #content")[0].appendChild(content);
                 $("#item #status")[0].textContent = btn.getAttribute("data-status");
                 $("#item").show();
+                $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
             });
             $("#closeBtn").click(function() {
                 $("#item").hide();
