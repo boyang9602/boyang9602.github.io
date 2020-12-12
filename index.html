@@ -27,11 +27,13 @@
         #item {
             top: 0;
             left: 0;
+            bottom:0;
+            right: 0;
             padding: 3%;
             position: fixed;
             width: 100%;
             display: none;
-            height: 100%;
+            overflow-y:scroll;
             background-color: aliceblue;
         }
         #item .key {
@@ -195,6 +197,7 @@
                 var a = document.createElement("a");
                 // console.log(btn);
                 a.setAttribute("href", btn.getAttribute("data-url") + btn.getAttribute("commit"));
+                a.setAttribute("target", "_blank");
                 a.textContent = btn.getAttribute("commit");
                 $("#item #commit")[0].appendChild(a);
                 $("#item #liveAnnotations")[0].textContent = btn.getAttribute("data-activeannotations") || "empty";
