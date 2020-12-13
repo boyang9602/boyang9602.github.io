@@ -235,7 +235,7 @@
                 $("#items").empty();
                 for (let i = 0; i < data[btn.getAttribute("name")].length; i++) {
                     if (i == 0 && data[btn.getAttribute("name")].length > 1 && data[btn.getAttribute("name")][i]["commitId"] === data[btn.getAttribute("name")][i + 1]["commitId"]) {
-                        $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
+                        // $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
                         continue;
                     }
                     const state = data[btn.getAttribute("name")][i];
@@ -243,7 +243,7 @@
                     if (index != -1) {
                         $("#items").append(createItem(data[btn.getAttribute("name")][i], types[index]));
                     } else if (i == 0) {
-                        $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
+                        // $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
                     }
                 }
                 $("#evolutionList").show();
