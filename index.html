@@ -175,6 +175,21 @@
                     }
                 }
             }});
+            function statusDescription(status) {
+                if (status === "NEW") {
+                    return "Newly added method/class";
+                } else if (status === "ACT") {
+                    return "The entire method/class is <b>not</b> commented out";
+                } else if (status === "CO") {
+                    return "The entire method/class is commented out";
+                } else if (status === "NEW_CO") {
+                    return "The method/class is newly added, but it is entirly commented out";
+                } else if (status === "DEL") {
+                    return "The method/class is deleted";
+                } else {
+                    return status;
+                }
+            }
             function createContainer(text, value, valueNode = "div") {
                 var container = document.createElement("div");
                 container.setAttribute("class", "container");
@@ -199,7 +214,7 @@
                 var change = createContainer("Change: ", kls === "None" && state["status"] === "DEL" ? "deleted" : kls);
                 var activeAnnotations = createContainer("ActiveAnnotations: ", state["activeAnnotations"]);
                 var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
-                var status = createContainer("Status: ", state["status"]);
+                var status = createContainer("Status: ", statusDescription(state["status"]));
                 var content = createContainer("Content: ", state["content"], "xmp");
                 var item = document.createElement("div");
                 item.setAttribute("class", kls)
