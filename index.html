@@ -68,6 +68,9 @@
         .DELETED {
             background-color: plum;
         }
+        .item {
+            margin-bottom: 15px;
+        }
     </style>
 <body>
     <input type="file" id="data" webkitdirectory directory multiple/><input type="button" id="loaddata" value="start" />
@@ -216,9 +219,12 @@
                 var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
                 var status = createContainer("Status: ", statusDescription(state["status"]));
                 var content = createContainer("Content: ", state["content"], "xmp");
+                var hidden = document.createElement("button");
+                hidden.textContent = "Hide/Show Content";
+                hidden.setAttribute("class", "showContent");
                 var item = document.createElement("div");
-                item.setAttribute("class", kls)
-                item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, content);
+                item.setAttribute("class", kls + " item")
+                item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, hidden, content);
                 return item;
             }
             $(document).on("click", "button.show", function(e) {
@@ -228,6 +234,10 @@
                 var types = row[1].split("->");
                 $("#items").empty();
                 for (let i = 0; i < data[btn.getAttribute("name")].length; i++) {
+                    if (i == 0 && data[btn.getAttribute("name")][i]["commitId"] === data[btn.getAttribute("name")][i + 1]["commitId"]) {
+                        $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
+                        continue;
+                    }
                     const state = data[btn.getAttribute("name")][i];
                     const index = commits.indexOf(state["commitId"]);
                     if (index != -1) {
@@ -238,6 +248,14 @@
                 }
                 $("#evolutionList").show();
                 $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
+            });
+            $(document).on("click", ".showContent", function(e) {
+                var btn = e.currentTarget;
+                if ($(btn.nextSibling).is(":hidden")) {
+                    $(btn.nextSibling).show();
+                } else {
+                    $(btn.nextSibling).hide();
+                }
             });
             $("#closeBtn").click(function() {
                 $("#evolutionList").hide();
