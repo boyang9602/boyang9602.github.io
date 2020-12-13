@@ -234,7 +234,7 @@
                 var types = row[1].split("->");
                 $("#items").empty();
                 for (let i = 0; i < data[btn.getAttribute("name")].length; i++) {
-                    if (i == 0 && data[btn.getAttribute("name")][i]["commitId"] === data[btn.getAttribute("name")][i + 1]["commitId"]) {
+                    if (i == 0 && data[btn.getAttribute("name")].length > 1 && data[btn.getAttribute("name")][i]["commitId"] === data[btn.getAttribute("name")][i + 1]["commitId"]) {
                         $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
                         continue;
                     }
