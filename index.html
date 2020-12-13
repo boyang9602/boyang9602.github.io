@@ -65,6 +65,9 @@
         .NotInStudyDuration {
             background-color: grey;
         }
+        .DELETED {
+            background-color: plum;
+        }
     </style>
 <body>
     <input type="file" id="data" webkitdirectory directory multiple/><input type="button" id="loaddata" value="start" />
@@ -192,7 +195,7 @@
                 var name = createContainer("Name: ", state["name"]);
                 var filepath = createContainer("FilePath: ", state["filePath"]);
                 var commit = createContainer("Commit: ", project_repo[state["project"]] + state["commitId"], "a");
-                var change = createContainer("Change: ", kls);
+                var change = createContainer("Change: ", kls === "None" && state["status"] === "DEL" ? "deleted" : kls);
                 var activeAnnotations = createContainer("ActiveAnnotations: ", state["activeAnnotations"]);
                 var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
                 var status = createContainer("Status: ", state["status"]);
