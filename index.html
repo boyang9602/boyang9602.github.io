@@ -21,10 +21,13 @@
             overflow-wrap: anywhere;
         }
         .type {
-            width: 10%;
+            width: 5%;
             margin: 2px;
         }
-        #item {
+        .showBtnContainer {
+            width: 5%;
+        }
+        #evolutionList {
             top: 0;
             left: 0;
             bottom:0;
@@ -36,10 +39,10 @@
             overflow-y:scroll;
             background-color: aliceblue;
         }
-        #item .key {
+        #evolutionList .key {
             width: 10%;
         }
-        #item .value {
+        #evolutionList .value {
             width: 80%;
         }
         #closeBtn {
@@ -52,6 +55,16 @@
             color: red;
             background-color: black;
         }
+
+        .DISABLED {
+            background-color: bisque;
+        }
+        .RE-ENABLED {
+            background-color:aquamarine;
+        }
+        .NotInStudyDuration {
+            background-color: grey;
+        }
     </style>
 <body>
     <input type="file" id="data" webkitdirectory directory multiple/><input type="button" id="loaddata" value="start" />
@@ -61,38 +74,16 @@
             <div class="type">Evolution</div>
         </div>
     </div>
-    <div id="item">
+    <div id="evolutionList">
         <div id="closeBtn">Close X</div>
-        <div class="container">
-            <div class="key">Name: </div>
-            <div class="value" id="name"></div>
-        </div>
-        <div class="container">
-            <div class="key">Filepath: </div>
-            <div class="value" id="filepath"></div>
-        </div>
-        <p id="commit"></p>
-        <div class="container">
-            <div class="key">liveAnnotations: </div>
-            <div class="value" id="liveAnnotations"></div>
-        </div>
-        <div class="container">
-            <div class="key">COAnnotations: </div>
-            <div class="value" id="COAnnotations"></div>
-        </div>
-        <div class="container">
-            <div class="key">status: </div>
-            <div class="value" id="status"></div>
-        </div>
-        <div class="container">
-            <div class="key">content: </div>
-            <div class="value" id="content"></div>
+        <div id="items">
         </div>
     </div>
     <script>
         $("#loaddata").click(function() {
             var files = $("#data")[0].files;
             var data = {};
+            var evolutionMap = {};
             project_repo = {
                 "camel": "https://github.com/apache/camel/commit/",
                 "cassandra": "https://github.com/apache/cassandra/commit/",
@@ -121,7 +112,7 @@
             Papa.parse(csv, {complete: function(results) {
                 for (let j = 1; j < results.data.length; j++) {
                     const row = results.data[j];
-                    if (row === "") {
+                    if (row[0] === "") {
                         continue;
                     }
                     var tr = document.createElement("div");
@@ -132,33 +123,33 @@
                     td1.appendChild(document.createTextNode(row[0]));
                     var td2 = document.createElement("div");
                     td2.setAttribute("class", "type");
-                    var commits = row[1].split("->");
-                    var types = row[2].split("->");
+                    var commits = row[2].split("->");
+                    var types = row[1].split("->");
 
                     if (commits.length != types.length) {
                         alert("something is wrong :(");
                     }
 
-                    for (let j = 0; j < commits.length; j++) {
-                        const commitId = commits[j];
-                        const type = types[j];
-                        var btn = document.createElement("button");
-                        btn.setAttribute("commit", commitId);
-                        btn.setAttribute("name", row[0]);
-                        btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__") + " " + "show");
-                        btn.textContent = type;
-                        var p = document.createElement("p");
-                        p.appendChild(btn);
-                        td2.append(p);
-                    }
-                    tr.append(td1, td2);
+                    var typesText = types.join("\n    |\n    v\n");
+                    var pre = document.createElement("pre");
+                    pre.appendChild(document.createTextNode(typesText));
+                    td2.append(pre);
+
+                    var td3 = document.createElement("div");
+                    var btn = document.createElement("button");
+                    btn.textContent = "Show Details";
+                    td3.setAttribute("class", "showBtnContainer");
+                    btn.setAttribute("name", row[0]);
+                    btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__") + " " + "show");
+                    td3.append(btn);
+                    tr.append(td1, td2, td3);
                     $("#list").append(tr);
                     $("#list").append("<hr/>")
+                    evolutionMap[row[0]] =  row;
                 }
                 for (let i = 0; i < files.length; i++) {
                     const f = files[i];
-                    if (f.name.endsWith(".csv")) {
-                    } else {
+                    if (f.name.endsWith(".json")) {
                         var reader = new FileReader();
                         reader.readAsText(f);
                         reader.onload = (function(f){
@@ -168,25 +159,11 @@
                                 for (let i = 1; i < results.data.length; i++) {
                                     const sample = results.data[i];
                                     if (sample[0] in json) {
-                                        var btns = $("." + sample[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__"));
-                                        for (let k = 0; k < btns.length; k++) {
-                                            const btn = btns[k];
-                                            for (let l = 0; l < json[sample[0]].length; l++) {
-                                                const state = json[sample[0]][l];
-                                                if (state["commitId"] === btn.getAttribute("commit")) {
-                                                    for (const key in state) {
-                                                        const value = state[key];
-                                                        if (Array.isArray(value)) {
-                                                            btn.setAttribute("data-" + key, value.join(", "));
-                                                        } else {
-                                                            if (key != "strippedContent" && !key.startsWith("is") && !key.startsWith("has") && key != "junit3" && key != "commitId") {
-                                                                btn.setAttribute("data-" + key, value);
-                                                            }
-                                                        }
-                                                    }
-                                                    btn.setAttribute("project", project);
-                                                }
-                                            }
+                                        data[sample[0]] = json[sample[0]];
+                                        data[sample[0]]["project"] = project;
+                                        for (let index = 0; index < data[sample[0]].length; index++) {
+                                            const state = data[sample[0]][index];
+                                            state["project"] = project;
                                         }
                                     }
                                 }
@@ -195,37 +172,53 @@
                     }
                 }
             }});
-            function clearItem() {
-                $("#item #name").empty();
-                $("#item #filepath").empty();
-                $("#item #commit").empty();
-                $("#item #liveAnnotations").empty();
-                $("#item #COAnnotations").empty();
-                $("#item #content").empty();
-                $("#item #status").empty();
+            function createContainer(text, value, valueNode = "div") {
+                var container = document.createElement("div");
+                container.setAttribute("class", "container");
+                var key = document.createElement("div");
+                key.textContent = text;
+                key.setAttribute("class", "key");
+                container.append(key);
+                var val = document.createElement(valueNode);
+                if (valueNode === "a") {
+                    val.setAttribute("href", value);
+                }
+                val.textContent = value;
+                val.setAttribute("class", "value");
+                container.append(val);
+                return container;
+            }
+            function createItem(state, kls) {
+                var name = createContainer("Name: ", state["name"]);
+                var filepath = createContainer("FilePath: ", state["filePath"]);
+                var commit = createContainer("Commit: ", project_repo[state["project"]] + state["commitId"], "a");
+                var change = createContainer("Change: ", kls);
+                var activeAnnotations = createContainer("ActiveAnnotations: ", state["activeAnnotations"]);
+                var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
+                var status = createContainer("Status: ", state["status"]);
+                var content = createContainer("Content: ", state["content"], "xmp");
+                var item = document.createElement("div");
+                item.setAttribute("class", kls)
+                item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, content);
+                return item;
             }
             $(document).on("click", "button.show", function(e) {
-                clearItem();
                 var btn = e.currentTarget;
-                $("#item #name")[0].textContent = btn.getAttribute("data-name");
-                $("#item #filepath")[0].textContent = btn.getAttribute("data-filepath");
-                var a = document.createElement("a");
-                // console.log(btn);
-                a.setAttribute("href", project_repo[btn.getAttribute("project")] + btn.getAttribute("commit"));
-                a.setAttribute("target", "_blank");
-                a.textContent = btn.getAttribute("commit");
-                $("#item #commit")[0].appendChild(a);
-                $("#item #liveAnnotations")[0].textContent = btn.getAttribute("data-activeannotations") || "empty";
-                $("#item #COAnnotations")[0].textContent = btn.getAttribute("data-coannotations") || "empty";
-                var content = document.createElement("xmp");
-                content.textContent = btn.getAttribute("data-content");
-                $("#item #content")[0].appendChild(content);
-                $("#item #status")[0].textContent = btn.getAttribute("data-status");
-                $("#item").show();
+                var row = evolutionMap[btn.getAttribute("name")];
+                var commits = row[2].split("->");
+                var types = row[1].split("->");
+                $("#items").empty();
+                $("#items").append(createItem(data[btn.getAttribute("name")][0], "NotInStudyDuration"));
+                for (let i = 1; i < data[btn.getAttribute("name")].length; i++) {
+                    const state = data[btn.getAttribute("name")][i];
+                    const index = commits.indexOf(state["commitId"]);
+                    $("#items").append(createItem(data[btn.getAttribute("name")][i], index == -1 ? "None" : types[index]));
+                }
+                $("#evolutionList").show();
                 $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
             });
             $("#closeBtn").click(function() {
-                $("#item").hide();
+                $("#evolutionList").hide();
             });
         });
         $(document).ready(function() {
