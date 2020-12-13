@@ -121,6 +121,9 @@
             Papa.parse(csv, {complete: function(results) {
                 for (let j = 1; j < results.data.length; j++) {
                     const row = results.data[j];
+                    if (row === "") {
+                        continue;
+                    }
                     var tr = document.createElement("div");
                     tr.setAttribute("class", "row container")
                     var td1 = document.createElement("div");
@@ -129,7 +132,6 @@
                     td1.appendChild(document.createTextNode(row[0]));
                     var td2 = document.createElement("div");
                     td2.setAttribute("class", "type");
-                    
                     var commits = row[1].split("->");
                     var types = row[2].split("->");
 
