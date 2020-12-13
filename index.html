@@ -185,6 +185,7 @@
                 var val = document.createElement(valueNode);
                 if (valueNode === "a") {
                     val.setAttribute("href", value);
+                    val.setAttribute("target", "_blank")
                 }
                 val.textContent = value;
                 val.setAttribute("class", "value");
@@ -211,11 +212,14 @@
                 var commits = row[2].split("->");
                 var types = row[1].split("->");
                 $("#items").empty();
-                $("#items").append(createItem(data[btn.getAttribute("name")][0], "NotInStudyDuration"));
-                for (let i = 1; i < data[btn.getAttribute("name")].length; i++) {
+                for (let i = 0; i < data[btn.getAttribute("name")].length; i++) {
                     const state = data[btn.getAttribute("name")][i];
                     const index = commits.indexOf(state["commitId"]);
-                    $("#items").append(createItem(data[btn.getAttribute("name")][i], index == -1 ? "None" : types[index]));
+                    if (index != -1) {
+                        $("#items").append(createItem(data[btn.getAttribute("name")][i], types[index]));
+                    } else if (i == 0) {
+                        $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
+                    }
                 }
                 $("#evolutionList").show();
                 $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
