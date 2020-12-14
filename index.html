@@ -71,6 +71,17 @@
         .item {
             margin-bottom: 15px;
         }
+        .itemContainer .item {
+            width: 65%;
+        }
+        .itemContainer .review {
+            width: 35%;
+        }
+        #download {
+            position: fixed;
+            top: 0;
+            left: 40%;
+        }
     </style>
 <body>
     <input type="file" id="data" webkitdirectory directory multiple/><input type="button" id="loaddata" value="start" />
@@ -227,6 +238,42 @@
                 item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, hidden, content);
                 return item;
             }
+            function createCheckbox(question) {
+                var div = document.createElement("div");
+                var radio = document.createElement("input");
+                radio.setAttribute("type", "checkbox");
+                var label = document.createElement("label");
+                label.textContent = question;
+                div.append(radio, label);
+                return div;
+            }
+
+            function createText(question) {
+                var div = document.createElement("div");
+                var text = document.createElement("textarea");
+                text.setAttribute("rows", 5);
+                text.setAttribute("cols", 50);
+                var label = document.createElement("label");
+                label.textContent = question;
+                div.append(label, text);
+                return div;
+            }
+            function createReview(key, commitId) {
+                var review = document.createElement("div");
+                review.setAttribute("class", "review");
+                review.setAttribute("key", key);
+                review.setAttribute("commit", commitId);
+                var aa = createCheckbox("The active annotations are correct");
+                var ca = createCheckbox("The commented out annotations are correct");
+                var st = createCheckbox("The status of the method is correct");
+                var ch = createCheckbox("The change is correct");
+                var mo = createText("Motivation");
+                var mc = createText("Test maintainability challenge");
+                var apr = createText("Automated Program Repair?");
+                var bp = createText("Bad practice");
+                review.append(aa, ca, st, ch, mo, mc, apr, bp);
+                return review;
+            }
             $(document).on("click", "button.show", function(e) {
                 var btn = e.currentTarget;
                 var row = evolutionMap[btn.getAttribute("name")];
@@ -241,7 +288,11 @@
                     const state = data[btn.getAttribute("name")][i];
                     const index = commits.indexOf(state["commitId"]);
                     if (index != -1) {
-                        $("#items").append(createItem(data[btn.getAttribute("name")][i], types[index]));
+                        var itemContainer = document.createElement("div");
+                        itemContainer.setAttribute("class", "container itemContainer");
+                        itemContainer.append(createItem(data[btn.getAttribute("name")][i], types[index]));
+                        itemContainer.append(createReview(btn.getAttribute("name"), state["commitId"]));
+                        $("#items").append(itemContainer);
                     } else if (i == 0) {
                         // $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
                     }
@@ -257,8 +308,30 @@
                     $(btn.nextSibling).hide();
                 }
             });
+
+            var reviewResults = {};
             $("#closeBtn").click(function() {
                 $("#evolutionList").hide();
+                var reviews = $(".review");
+                var result = {};
+                reviewResults[reviews[0].getAttribute("key")] = result;
+                for (let i = 0; i < reviews.length; i++) {
+                    const review = reviews[i];
+                    var result2 = {};
+                    result[review.getAttribute("commit")] = result2;
+                    var l1 = ["activeAnnotations", "COAnnotations", "status", "change"];
+                    var l2 = ["motivation", "maintainability challenge", "apr", "bad practice"];
+                    for (let index = 0; index < l1.length; index++) {
+                        const k = l1[index];
+                        result2[k] = $($(review).find(":checkbox")[index]).is(":checked") ? "Y" : "N";
+                    }
+                    for (let index = 0; index < l2.length; index++) {
+                        const k = l2[index];
+                        result2[k] = $($(review).find("textarea")[index]).val();
+                    }
+                }
+                $("#download").remove();
+                $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(reviewResults)) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
             });
         });
         $(document).ready(function() {
