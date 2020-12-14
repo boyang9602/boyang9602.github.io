@@ -180,15 +180,15 @@
             }});
             function statusDescription(status) {
                 if (status === "NEW") {
-                    return "Newly added method/class";
+                    return status + ": Newly added method/class";
                 } else if (status === "ACT") {
-                    return "The entire method/class is not commented out";
+                    return status + ": The entire method/class is not commented out";
                 } else if (status === "CO") {
-                    return "The entire method/class is commented out";
+                    return status + ": The entire method/class is commented out";
                 } else if (status === "NEW_CO") {
-                    return "The method/class is newly added, but it is entirly commented out";
+                    return status + ": The method/class is newly added, but it is entirly commented out";
                 } else if (status === "DEL") {
-                    return "The method/class is deleted";
+                    return status + ": The method/class is deleted";
                 } else {
                     return status;
                 }
