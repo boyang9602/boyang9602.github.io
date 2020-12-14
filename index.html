@@ -97,27 +97,206 @@
         </div>
     </div>
     <script>
+        globalData = {}
+        project_repo = {
+            "camel": "https://github.com/apache/camel/commit/",
+            "cassandra": "https://github.com/apache/cassandra/commit/",
+            "cloudstack": "https://github.com/apache/cloudstack/commit/",
+            "druid": "https://github.com/apache/druid/commit/",
+            "flink": "https://github.com/apache/flink/commit/",
+            "hadoop": "https://github.com/apache/hadoop/commit/",
+            "hbase": "https://github.com/apache/hbase/commit/",
+            "hive": "https://github.com/apache/hive/commit/",
+            "ignite": "https://github.com/apache/ignite/commit/",
+            "incubator-pinot": "https://github.com/apache/incubator-pinot/commit/",
+            "kafka": "https://github.com/apache/kafka/commit/",
+            "maven": "https://github.com/apache/maven/commit/",
+            "orientdb": "https://github.com/orientechnologies/orientdb/commit/",
+            "storm": "https://github.com/apache/storm/commit/",
+            "Openfire": "https://github.com/igniterealtime/Openfire/commit/"
+        }
+
+        function statusDescription(status) {
+            if (status === "NEW") {
+                return status + ": Newly added method/class";
+            } else if (status === "ACT") {
+                return status + ": The entire method/class is not commented out";
+            } else if (status === "CO") {
+                return status + ": The entire method/class is commented out";
+            } else if (status === "NEW_CO") {
+                return status + ": The method/class is newly added, but it is entirly commented out";
+            } else if (status === "DEL") {
+                return status + ": The method/class is deleted";
+            } else {
+                return status;
+            }
+        }
+        function createContainer(text, value, valueNode = "div") {
+            var container = document.createElement("div");
+            container.setAttribute("class", "container");
+            var key = document.createElement("div");
+            key.textContent = text;
+            key.setAttribute("class", "key");
+            container.append(key);
+            var val = document.createElement(valueNode);
+            if (valueNode === "a") {
+                val.setAttribute("href", value);
+                val.setAttribute("target", "_blank")
+            }
+            val.textContent = value;
+            val.setAttribute("class", "value");
+            container.append(val);
+            return container;
+        }
+        function createItem(state, kls) {
+            var name = createContainer("Name: ", state["name"]);
+            var filepath = createContainer("FilePath: ", state["filePath"]);
+            var commit = createContainer("Commit: ", project_repo[state["project"]] + state["commitId"], "a");
+            var change = createContainer("Change: ", kls === "None" && state["status"] === "DEL" ? "deleted" : kls);
+            var activeAnnotations = createContainer("ActiveAnnotations: ", state["activeAnnotations"]);
+            var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
+            var status = createContainer("Status: ", statusDescription(state["status"]));
+            var content = createContainer("Content: ", state["content"], "xmp");
+            var hidden = document.createElement("button");
+            hidden.textContent = "Hide/Show Content";
+            hidden.setAttribute("class", "showContent");
+            var item = document.createElement("div");
+            item.setAttribute("class", kls + " item")
+            item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, hidden, content);
+            return item;
+        }
+        function createCheckbox(question) {
+            var div = document.createElement("div");
+            var radio = document.createElement("input");
+            radio.setAttribute("type", "checkbox");
+            var label = document.createElement("label");
+            label.textContent = question;
+            div.append(radio, label);
+            return div;
+        }
+        function createText(question) {
+            var div = document.createElement("div");
+            var text = document.createElement("textarea");
+            text.setAttribute("rows", 5);
+            text.setAttribute("cols", 50);
+            var label = document.createElement("label");
+            label.textContent = question;
+            div.append(label, text);
+            return div;
+        }
+        function createReview(key, commitId, prevReview = null) {
+            var review = document.createElement("div");
+            review.setAttribute("class", "review");
+            review.setAttribute("key", key);
+            review.setAttribute("commit", commitId);
+            var aa = createCheckbox("The active annotations are correct");
+            var ca = createCheckbox("The commented out annotations are correct");
+            var st = createCheckbox("The status of the method is correct");
+            var ch = createCheckbox("The change is correct");
+            var mo = createText("Motivation");
+            var mc = createText("Test maintainability challenge");
+            var apr = createText("Automated Program Repair?");
+            var bp = createText("Bad practice");
+            review.append(aa, ca, st, ch, mo, mc, apr, bp);
+            if (prevReview !== null) {
+                $(aa).children(":checkbox").prop("checked", prevReview["activeAnnotations"] === "Y");
+                $(ca).children(":checkbox").prop("checked", prevReview["COAnnotations"] === "Y");
+                $(st).children(":checkbox").prop("checked", prevReview["status"] === "Y");
+                $(ch).children(":checkbox").prop("checked", prevReview["change"] === "Y");
+
+                $(mo).children("textarea").val(prevReview["motivation"]);
+                $(mc).children("textarea").val(prevReview["maintainability challenge"]);
+                $(apr).children("textarea").val(prevReview["apr"]);
+                $(bp).children("textarea").val(prevReview["bad practice"]);
+            }
+            return review;
+        }
+        function createEvolutionList(evolutionList) {
+            for (let index = 0; index < evolutionList.length; index++) {
+                const row = evolutionList[index];
+                var tr = document.createElement("div");
+                tr.setAttribute("class", "row container")
+                var td1 = document.createElement("div");
+                td1.setAttribute("class", "name");
+                var textNodeContainer = document.createElement("div");
+                td1.appendChild(document.createTextNode(row[0]));
+                var td2 = document.createElement("div");
+                td2.setAttribute("class", "type");
+                var commits = row[2].split("->");
+                var types = row[1].split("->");
+
+                if (commits.length != types.length) {
+                    alert("something is wrong :(");
+                }
+
+                var typesText = types.join("\n    |\n    v\n");
+                var pre = document.createElement("pre");
+                pre.appendChild(document.createTextNode(typesText));
+                td2.append(pre);
+
+                var td3 = document.createElement("div");
+                var btn = document.createElement("button");
+                btn.textContent = "Show Details";
+                td3.setAttribute("class", "showBtnContainer");
+                btn.setAttribute("name", row[0]);
+                btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__") + " " + "show");
+                td3.append(btn);
+                tr.append(td1, td2, td3);
+                $("#list").append(tr);
+                $("#list").append("<hr/>");   
+            }
+        }
+
+        $(document).on("click", "button.show", function(e) {
+            var btn = e.currentTarget;
+            var evolutionMap = globalData["evolutionMap"];
+            var row = evolutionMap[btn.getAttribute("name")];
+            var commits = row[2].split("->");
+            var types = row[1].split("->");
+            $("#items").empty();
+            var lst = JSON.parse(localStorage.getItem(btn.getAttribute("name")));
+            var prevReview = null;
+            if ("reviews" in globalData && btn.getAttribute("name") in globalData["reviews"]) {
+                prevReview = globalData["reviews"][btn.getAttribute("name")];
+            }
+            var j = 0;
+            for (let i = 0; i < lst.length; i++) {
+                if (i == 0 && lst.length > 1 && lst[i]["commitId"] === lst[i + 1]["commitId"]) {
+                    // $("#items").append(createItem(lst[i], "First-Node-Just-For-Comparison"));
+                    continue;
+                }
+                const state = lst[i];
+                const index = commits.indexOf(state["commitId"]);
+                if (index != -1) {
+                    var itemContainer = document.createElement("div");
+                    itemContainer.setAttribute("class", "container itemContainer");
+                    itemContainer.append(createItem(lst[i], types[index]));
+                    if (prevReview !== null) {
+                        itemContainer.append(createReview(btn.getAttribute("name"), state["commitId"], prevReview[j++]));
+                    } else {
+                        itemContainer.append(createReview(btn.getAttribute("name"), state["commitId"]));
+                    }
+                    $("#items").append(itemContainer);
+                } else if (i == 0) {
+                    // $("#items").append(createItem(lst[i], "First-Node-Just-For-Comparison"));
+                }
+            }
+            $("#evolutionList").show();
+            $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
+        });
+        $(document).on("click", ".showContent", function(e) {
+            var btn = e.currentTarget;
+            if ($(btn.nextSibling).is(":hidden")) {
+                $(btn.nextSibling).show();
+            } else {
+                $(btn.nextSibling).hide();
+            }
+        });
+
         $("#loaddata").click(function() {
             var files = $("#data")[0].files;
-            var data = {};
-            var evolutionMap = {};
-            project_repo = {
-                "camel": "https://github.com/apache/camel/commit/",
-                "cassandra": "https://github.com/apache/cassandra/commit/",
-                "cloudstack": "https://github.com/apache/cloudstack/commit/",
-                "druid": "https://github.com/apache/druid/commit/",
-                "flink": "https://github.com/apache/flink/commit/",
-                "hadoop": "https://github.com/apache/hadoop/commit/",
-                "hbase": "https://github.com/apache/hbase/commit/",
-                "hive": "https://github.com/apache/hive/commit/",
-                "ignite": "https://github.com/apache/ignite/commit/",
-                "incubator-pinot": "https://github.com/apache/incubator-pinot/commit/",
-                "kafka": "https://github.com/apache/kafka/commit/",
-                "maven": "https://github.com/apache/maven/commit/",
-                "orientdb": "https://github.com/orientechnologies/orientdb/commit/",
-                "storm": "https://github.com/apache/storm/commit/",
-                "Openfire": "https://github.com/igniterealtime/Openfire/commit/"
-            }
+            var evolutionList = [];
+
             let csv;
             for (let i = 0; i < files.length; i++) {
                 const f = files[i];
@@ -132,38 +311,18 @@
                     if (row[0] === "") {
                         continue;
                     }
-                    var tr = document.createElement("div");
-                    tr.setAttribute("class", "row container")
-                    var td1 = document.createElement("div");
-                    td1.setAttribute("class", "name");
-                    var textNodeContainer = document.createElement("div");
-                    td1.appendChild(document.createTextNode(row[0]));
-                    var td2 = document.createElement("div");
-                    td2.setAttribute("class", "type");
-                    var commits = row[2].split("->");
-                    var types = row[1].split("->");
-
-                    if (commits.length != types.length) {
-                        alert("something is wrong :(");
-                    }
-
-                    var typesText = types.join("\n    |\n    v\n");
-                    var pre = document.createElement("pre");
-                    pre.appendChild(document.createTextNode(typesText));
-                    td2.append(pre);
-
-                    var td3 = document.createElement("div");
-                    var btn = document.createElement("button");
-                    btn.textContent = "Show Details";
-                    td3.setAttribute("class", "showBtnContainer");
-                    btn.setAttribute("name", row[0]);
-                    btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__") + " " + "show");
-                    td3.append(btn);
-                    tr.append(td1, td2, td3);
-                    $("#list").append(tr);
-                    $("#list").append("<hr/>")
-                    evolutionMap[row[0]] =  row;
+                    evolutionList.push(row);
                 }
+                createEvolutionList(evolutionList);
+                localStorage.setItem("evolutionList", JSON.stringify(evolutionList));
+                globalData["evolutionList"] = evolutionList;
+                var evolutionMap = {}
+                globalData["evolutionMap"] = evolutionMap;
+                for (let index = 0; index < evolutionList.length; index++) {
+                    const row = evolutionList[index];
+                    evolutionMap[row[0]] = row;
+                }
+
                 for (let i = 0; i < files.length; i++) {
                     const f = files[i];
                     if (f.name.endsWith(".json")) {
@@ -176,12 +335,11 @@
                                 for (let i = 1; i < results.data.length; i++) {
                                     const sample = results.data[i];
                                     if (sample[0] in json) {
-                                        data[sample[0]] = json[sample[0]];
-                                        data[sample[0]]["project"] = project;
-                                        for (let index = 0; index < data[sample[0]].length; index++) {
-                                            const state = data[sample[0]][index];
+                                        for (let index = 0; index < json[sample[0]].length; index++) {
+                                            const state = json[sample[0]][index];
                                             state["project"] = project;
                                         }
+                                        localStorage.setItem(sample[0], JSON.stringify(json[sample[0]]));
                                     }
                                 }
                             };
@@ -189,154 +347,59 @@
                     }
                 }
             }});
-            function statusDescription(status) {
-                if (status === "NEW") {
-                    return status + ": Newly added method/class";
-                } else if (status === "ACT") {
-                    return status + ": The entire method/class is not commented out";
-                } else if (status === "CO") {
-                    return status + ": The entire method/class is commented out";
-                } else if (status === "NEW_CO") {
-                    return status + ": The method/class is newly added, but it is entirly commented out";
-                } else if (status === "DEL") {
-                    return status + ": The method/class is deleted";
-                } else {
-                    return status;
-                }
-            }
-            function createContainer(text, value, valueNode = "div") {
-                var container = document.createElement("div");
-                container.setAttribute("class", "container");
-                var key = document.createElement("div");
-                key.textContent = text;
-                key.setAttribute("class", "key");
-                container.append(key);
-                var val = document.createElement(valueNode);
-                if (valueNode === "a") {
-                    val.setAttribute("href", value);
-                    val.setAttribute("target", "_blank")
-                }
-                val.textContent = value;
-                val.setAttribute("class", "value");
-                container.append(val);
-                return container;
-            }
-            function createItem(state, kls) {
-                var name = createContainer("Name: ", state["name"]);
-                var filepath = createContainer("FilePath: ", state["filePath"]);
-                var commit = createContainer("Commit: ", project_repo[state["project"]] + state["commitId"], "a");
-                var change = createContainer("Change: ", kls === "None" && state["status"] === "DEL" ? "deleted" : kls);
-                var activeAnnotations = createContainer("ActiveAnnotations: ", state["activeAnnotations"]);
-                var COAnnotations = createContainer("COAnnotations: ", state["COAnnotations"]);
-                var status = createContainer("Status: ", statusDescription(state["status"]));
-                var content = createContainer("Content: ", state["content"], "xmp");
-                var hidden = document.createElement("button");
-                hidden.textContent = "Hide/Show Content";
-                hidden.setAttribute("class", "showContent");
-                var item = document.createElement("div");
-                item.setAttribute("class", kls + " item")
-                item.append(name, change, filepath, commit, activeAnnotations, COAnnotations, status, hidden, content);
-                return item;
-            }
-            function createCheckbox(question) {
-                var div = document.createElement("div");
-                var radio = document.createElement("input");
-                radio.setAttribute("type", "checkbox");
-                var label = document.createElement("label");
-                label.textContent = question;
-                div.append(radio, label);
-                return div;
-            }
+        });
 
-            function createText(question) {
-                var div = document.createElement("div");
-                var text = document.createElement("textarea");
-                text.setAttribute("rows", 5);
-                text.setAttribute("cols", 50);
-                var label = document.createElement("label");
-                label.textContent = question;
-                div.append(label, text);
-                return div;
+        var reviewResults = {};
+        $("#closeBtn").click(function() {
+            $("#evolutionList").hide();
+            var reviews = $(".review");
+            var result = [];
+            reviewResults[reviews[0].getAttribute("key")] = result;
+            for (let i = 0; i < reviews.length; i++) {
+                const review = reviews[i];
+                var result2 = {};
+                result2["commit"] = review.getAttribute("commit");
+                var l1 = ["activeAnnotations", "COAnnotations", "status", "change"];
+                var l2 = ["motivation", "maintainability challenge", "apr", "bad practice"];
+                for (let index = 0; index < l1.length; index++) {
+                    const k = l1[index];
+                    result2[k] = $($(review).find(":checkbox")[index]).is(":checked") ? "Y" : "N";
+                }
+                for (let index = 0; index < l2.length; index++) {
+                    const k = l2[index];
+                    result2[k] = $($(review).find("textarea")[index]).val();
+                }
+                result.push(result2);
             }
-            function createReview(key, commitId) {
-                var review = document.createElement("div");
-                review.setAttribute("class", "review");
-                review.setAttribute("key", key);
-                review.setAttribute("commit", commitId);
-                var aa = createCheckbox("The active annotations are correct");
-                var ca = createCheckbox("The commented out annotations are correct");
-                var st = createCheckbox("The status of the method is correct");
-                var ch = createCheckbox("The change is correct");
-                var mo = createText("Motivation");
-                var mc = createText("Test maintainability challenge");
-                var apr = createText("Automated Program Repair?");
-                var bp = createText("Bad practice");
-                review.append(aa, ca, st, ch, mo, mc, apr, bp);
-                return review;
-            }
-            $(document).on("click", "button.show", function(e) {
-                var btn = e.currentTarget;
-                var row = evolutionMap[btn.getAttribute("name")];
-                var commits = row[2].split("->");
-                var types = row[1].split("->");
-                $("#items").empty();
-                for (let i = 0; i < data[btn.getAttribute("name")].length; i++) {
-                    if (i == 0 && data[btn.getAttribute("name")].length > 1 && data[btn.getAttribute("name")][i]["commitId"] === data[btn.getAttribute("name")][i + 1]["commitId"]) {
-                        // $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
-                        continue;
-                    }
-                    const state = data[btn.getAttribute("name")][i];
-                    const index = commits.indexOf(state["commitId"]);
-                    if (index != -1) {
-                        var itemContainer = document.createElement("div");
-                        itemContainer.setAttribute("class", "container itemContainer");
-                        itemContainer.append(createItem(data[btn.getAttribute("name")][i], types[index]));
-                        itemContainer.append(createReview(btn.getAttribute("name"), state["commitId"]));
-                        $("#items").append(itemContainer);
-                    } else if (i == 0) {
-                        // $("#items").append(createItem(data[btn.getAttribute("name")][i], "First-Node-Just-For-Comparison"));
-                    }
-                }
-                $("#evolutionList").show();
-                $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
-            });
-            $(document).on("click", ".showContent", function(e) {
-                var btn = e.currentTarget;
-                if ($(btn.nextSibling).is(":hidden")) {
-                    $(btn.nextSibling).show();
-                } else {
-                    $(btn.nextSibling).hide();
-                }
-            });
-
-            var reviewResults = {};
-            $("#closeBtn").click(function() {
-                $("#evolutionList").hide();
-                var reviews = $(".review");
-                var result = [];
-                reviewResults[reviews[0].getAttribute("key")] = result;
-                for (let i = 0; i < reviews.length; i++) {
-                    const review = reviews[i];
-                    var result2 = {};
-                    result2["commit"] = review.getAttribute("commit");
-                    var l1 = ["activeAnnotations", "COAnnotations", "status", "change"];
-                    var l2 = ["motivation", "maintainability challenge", "apr", "bad practice"];
-                    for (let index = 0; index < l1.length; index++) {
-                        const k = l1[index];
-                        result2[k] = $($(review).find(":checkbox")[index]).is(":checked") ? "Y" : "N";
-                    }
-                    for (let index = 0; index < l2.length; index++) {
-                        const k = l2[index];
-                        result2[k] = $($(review).find("textarea")[index]).val();
-                    }
-                    result.push(result2);
-                }
-                $("#download").remove();
-                $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(reviewResults)) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
-            });
+            $("#download").remove();
+            var curr = JSON.stringify(reviewResults);
+            localStorage.setItem("reviews", curr);
+            $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(curr) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
         });
         $(document).ready(function() {
             alert("Note: put the manual study file (*.csv) and the 15 json files to a single folder. Click choose files, choose your folder in the popup dialog. Then click start button. All the analysis are at the front end. No files will be uploaded."); 
+            var evolutionList = localStorage.getItem("evolutionList");
+            if (evolutionList !== undefined && evolutionList !== null) {
+                evolutionList = JSON.parse(evolutionList);
+                globalData["evolutionList"] = evolutionList;
+                var evolutionMap = {}
+                globalData["evolutionMap"] = evolutionMap;
+                for (let index = 0; index < evolutionList.length; index++) {
+                    const row = evolutionList[index];
+                    evolutionMap[row[0]] = row;
+                }
+                createEvolutionList(evolutionList);
+                var reviews = localStorage.getItem("reviews");
+                if (reviews !== undefined && reviews !== null) {
+                    reviews = JSON.parse(reviews);
+                    globalData["reviews"] = reviews;
+                    reviewResults = reviews;
+                    for (const key in reviews) {
+                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__")
+                        $("." + kls)[0].setAttribute("class", kls + " show lastclick");
+                    }
+                }
+            }
         });
     </script>
 </body>
