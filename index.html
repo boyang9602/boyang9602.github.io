@@ -313,12 +313,12 @@
             $("#closeBtn").click(function() {
                 $("#evolutionList").hide();
                 var reviews = $(".review");
-                var result = {};
+                var result = [];
                 reviewResults[reviews[0].getAttribute("key")] = result;
                 for (let i = 0; i < reviews.length; i++) {
                     const review = reviews[i];
                     var result2 = {};
-                    result[review.getAttribute("commit")] = result2;
+                    result2["commit"] = review.getAttribute("commit");
                     var l1 = ["activeAnnotations", "COAnnotations", "status", "change"];
                     var l2 = ["motivation", "maintainability challenge", "apr", "bad practice"];
                     for (let index = 0; index < l1.length; index++) {
@@ -329,6 +329,7 @@
                         const k = l2[index];
                         result2[k] = $($(review).find("textarea")[index]).val();
                     }
+                    result.push(result2);
                 }
                 $("#download").remove();
                 $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(reviewResults)) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
