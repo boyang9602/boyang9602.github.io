@@ -272,7 +272,7 @@
                 btn.textContent = "Show Details";
                 td3.setAttribute("class", "showBtnContainer");
                 btn.setAttribute("name", row[0]);
-                btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__") + " " + "show");
+                btn.setAttribute("class", row[0].replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_") + " " + "show");
                 td3.append(btn);
                 tr.append(td1, td2, td3);
                 $("#list").append(tr);
@@ -429,7 +429,7 @@
                     globalData["reviews"] = reviews;
                     reviewResults = reviews;
                     for (const key in reviews) {
-                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__");
+                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
                         $($("." + kls)[0]).parent().parent().css("background-color", "BlanchedAlmond");
                         for (const k2 in reviews[key]) {
                             if (reviews[key][k2]["interesting"] === "Y") {
