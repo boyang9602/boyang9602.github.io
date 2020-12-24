@@ -15,6 +15,9 @@
             display: flex;
             flex-direction: row;
         }
+        label {
+            white-space: nowrap;
+        }
         .name {
             width: 90%;
             margin: 2px;
@@ -47,7 +50,7 @@
         }
         #closeBtn {
             padding: 10px;
-            width: 10%;
+            width: 8%;
             background-color: red;
         }
         xmp{ white-space:pre-wrap; word-wrap:break-word; }
@@ -184,6 +187,31 @@
             div.append(label, text);
             return div;
         }
+        function createOption(val) {
+            var op1 = document.createElement("option");
+            op1.setAttribute("value", val);
+            op1.textContent = val;
+            return op1;
+        }
+        function createSelectBox() {
+            var div = document.createElement("div");
+            var label = document.createElement("label");
+            label.textContent = "Label: ";
+            var select = document.createElement("select");
+            select.append(createOption(""));
+            select.append(createOption("FUT Bug"));
+            select.append(createOption("Dependency Issue"));
+            select.append(createOption("Test Bug"));
+            select.append(createOption("Flaky"));
+            select.append(createOption("Inherited and don't want run"));
+            select.append(createOption("Manual(ENV)"));
+            select.append(createOption("Manual(Expensive)"));
+            select.append(createOption("Manual"));
+            select.append(createOption("Feature Removed"));
+            select.append(createOption("Other"));
+            div.append(label, select);
+            return div;
+        }
         function createReview(key, commitId, prevReview = null) {
             var review = document.createElement("div");
             review.setAttribute("class", "review");
@@ -193,16 +221,21 @@
             var ca = createCheckbox("The commented out annotations are correct");
             var st = createCheckbox("The status of the method is correct");
             var ch = createCheckbox("The change is correct");
-            var mo = createText("Motivation");
+            var ig = createCheckbox("Interesting case");
+            var sb = createSelectBox();
+            var mo = createText("Detailed Motivation");
             var mc = createText("Test maintainability challenge");
             var apr = createText("Automated Program Repair?");
             var bp = createText("Bad practice");
-            review.append(aa, ca, st, ch, mo, mc, apr, bp);
+            review.append(aa, ca, st, ch, sb, mo, mc, apr, bp);
             if (prevReview !== null) {
                 $(aa).children(":checkbox").prop("checked", prevReview["activeAnnotations"] === "Y");
                 $(ca).children(":checkbox").prop("checked", prevReview["COAnnotations"] === "Y");
                 $(st).children(":checkbox").prop("checked", prevReview["status"] === "Y");
                 $(ch).children(":checkbox").prop("checked", prevReview["change"] === "Y");
+                $(ig).children(":checkbox").prop("checked", prevReview["interesting"] === "Y");
+
+                $(sb).children("select").val(prevReview["label"] || "");
 
                 $(mo).children("textarea").val(prevReview["motivation"]);
                 $(mc).children("textarea").val(prevReview["maintainability challenge"]);
@@ -359,7 +392,7 @@
                 const review = reviews[i];
                 var result2 = {};
                 result2["commit"] = review.getAttribute("commit");
-                var l1 = ["activeAnnotations", "COAnnotations", "status", "change"];
+                var l1 = ["activeAnnotations", "COAnnotations", "status", "change", "interesting"];
                 var l2 = ["motivation", "maintainability challenge", "apr", "bad practice"];
                 for (let index = 0; index < l1.length; index++) {
                     const k = l1[index];
@@ -369,6 +402,7 @@
                     const k = l2[index];
                     result2[k] = $($(review).find("textarea")[index]).val();
                 }
+                result2["label"] = $($(review).find("select")[0]).val();
                 result.push(result2);
             }
             $("#download").remove();
@@ -377,7 +411,7 @@
             $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(curr) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
         });
         $(document).ready(function() {
-            alert("Note: put the manual study file (*.csv) and the 15 json files to a single folder. Click choose files, choose your folder in the popup dialog. Then click start button. All the analysis are at the front end. No files will be uploaded."); 
+            // alert("Note: put the manual study file (*.csv) and the 15 json files to a single folder. Click choose files, choose your folder in the popup dialog. Then click start button. All the analysis are at the front end. No files will be uploaded."); 
             var evolutionList = localStorage.getItem("evolutionList");
             if (evolutionList !== undefined && evolutionList !== null) {
                 evolutionList = JSON.parse(evolutionList);
