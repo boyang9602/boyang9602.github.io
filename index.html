@@ -315,7 +315,6 @@
                 }
             }
             $("#evolutionList").show();
-            // $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
         });
         $(document).on("click", ".showContent", function(e) {
             var btn = e.currentTarget;
@@ -388,6 +387,7 @@
             var reviews = $(".review");
             var result = [];
             reviewResults[reviews[0].getAttribute("key")] = result;
+            var itst = false;
             for (let i = 0; i < reviews.length; i++) {
                 const review = reviews[i];
                 var result2 = {};
@@ -404,11 +404,15 @@
                 }
                 result2["label"] = $($(review).find("select")[0]).val();
                 result.push(result2);
+                itst ||= result2["interesting"];
             }
             $("#download").remove();
             var curr = JSON.stringify(reviewResults);
             localStorage.setItem("reviews", curr);
             $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(curr) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
+            
+            var kls = reviews[0].getAttribute("key").replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
+            $("." + kls).parent().parent().css("background-color", itst ? "Chartreuse" : "BlanchedAlmond");
         });
         $(document).ready(function() {
             // alert("Note: put the manual study file (*.csv) and the 15 json files to a single folder. Click choose files, choose your folder in the popup dialog. Then click start button. All the analysis are at the front end. No files will be uploaded."); 
