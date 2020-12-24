@@ -404,7 +404,7 @@
                 }
                 result2["label"] = $($(review).find("select")[0]).val();
                 result.push(result2);
-                itst ||= result2["interesting"];
+                itst ||= result2["interesting"] === "Y";
             }
             $("#download").remove();
             var curr = JSON.stringify(reviewResults);
