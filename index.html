@@ -54,10 +54,10 @@
             background-color: red;
         }
         xmp{ white-space:pre-wrap; word-wrap:break-word; }
-        .lastclick {
+        /* .lastclick {
             color: red;
             background-color: black;
-        }
+        } */
 
         .DISABLED {
             background-color: bisque;
@@ -227,7 +227,7 @@
             var mc = createText("Test maintainability challenge");
             var apr = createText("Automated Program Repair?");
             var bp = createText("Bad practice");
-            review.append(aa, ca, st, ch, sb, mo, mc, apr, bp);
+            review.append(aa, ca, st, ch, ig, sb, mo, mc, apr, bp);
             if (prevReview !== null) {
                 $(aa).children(":checkbox").prop("checked", prevReview["activeAnnotations"] === "Y");
                 $(ca).children(":checkbox").prop("checked", prevReview["COAnnotations"] === "Y");
@@ -315,7 +315,7 @@
                 }
             }
             $("#evolutionList").show();
-            $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
+            // $(btn)[0].setAttribute("class", $(btn)[0].getAttribute("class") + " lastclick");
         });
         $(document).on("click", ".showContent", function(e) {
             var btn = e.currentTarget;
@@ -429,8 +429,13 @@
                     globalData["reviews"] = reviews;
                     reviewResults = reviews;
                     for (const key in reviews) {
-                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__")
-                        $("." + kls)[0].setAttribute("class", kls + " show lastclick");
+                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__");
+                        $($("." + kls)[0]).parent().parent().css("background-color", "BlanchedAlmond");
+                        for (const k2 in reviews[key]) {
+                            if (reviews[key][k2]["interesting"] === "Y") {
+                                $($("." + kls)[0]).parent().parent().css("background-color", "Chartreuse");
+                            }
+                        }
                     }
                 }
             }
