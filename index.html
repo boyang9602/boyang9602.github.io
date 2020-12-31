@@ -411,11 +411,31 @@
             }
             $("#download").remove();
             var curr = JSON.stringify(reviewResults);
-            localStorage.setItem("reviews", curr);
+            // localStorage.setItem("reviews", curr);
             $('<a id="download" href="data:text/json;charset=utf-8,' + encodeURIComponent(curr) + ' "download="reviews.json">Download Reviews</a>').appendTo($("body"));
             
-            var kls = reviews[0].getAttribute("key").replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
+            var kls = k2class(reviews[0].getAttribute("key"));
             $("." + kls).parent().parent().css("background-color", itst ? "Chartreuse" : "BlanchedAlmond");
+        });
+
+        function k2class(k) {
+            return k.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
+        }
+        function loadReviews(reviews) {
+            globalData["reviews"] = reviews;
+            reviewResults = reviews;
+            for (const key in reviews) {
+                var kls = k2class(key);
+                $($("." + kls)[0]).parent().parent().css("background-color", "BlanchedAlmond");
+                for (const k2 in reviews[key]) {
+                    if (reviews[key][k2]["interesting"] === "Y") {
+                        $($("." + kls)[0]).parent().parent().css("background-color", "Chartreuse");
+                    }
+                }
+            }
+        }
+        window.addEventListener("beforeunload", function(e) {
+            e.returnValue = "Do not forget to download your reviews";
         });
         $(document).ready(function() {
             // alert("Note: put the manual study file (*.csv) and the 15 json files to a single folder. Click choose files, choose your folder in the popup dialog. Then click start button. All the analysis are at the front end. No files will be uploaded."); 
@@ -430,21 +450,21 @@
                     evolutionMap[row[0]] = row;
                 }
                 createEvolutionList(evolutionList);
-                var reviews = localStorage.getItem("reviews");
-                if (reviews !== undefined && reviews !== null) {
-                    reviews = JSON.parse(reviews);
-                    globalData["reviews"] = reviews;
-                    reviewResults = reviews;
-                    for (const key in reviews) {
-                        var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
-                        $($("." + kls)[0]).parent().parent().css("background-color", "BlanchedAlmond");
-                        for (const k2 in reviews[key]) {
-                            if (reviews[key][k2]["interesting"] === "Y") {
-                                $($("." + kls)[0]).parent().parent().css("background-color", "Chartreuse");
-                            }
-                        }
-                    }
-                }
+                // var reviews = localStorage.getItem("reviews");
+                // if (reviews !== undefined && reviews !== null) {
+                //     reviews = JSON.parse(reviews);
+                //     globalData["reviews"] = reviews;
+                //     reviewResults = reviews;
+                //     for (const key in reviews) {
+                //         var kls = key.replaceAll(".", "_").replaceAll("(", "lp").replaceAll(")", "rp").replaceAll("::", "__").replaceAll(",", "_comma_");
+                //         $($("." + kls)[0]).parent().parent().css("background-color", "BlanchedAlmond");
+                //         for (const k2 in reviews[key]) {
+                //             if (reviews[key][k2]["interesting"] === "Y") {
+                //                 $($("." + kls)[0]).parent().parent().css("background-color", "Chartreuse");
+                //             }
+                //         }
+                //     }
+                // }
             }
         });
     </script>
